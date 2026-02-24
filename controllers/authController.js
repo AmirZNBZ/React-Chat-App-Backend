@@ -17,18 +17,10 @@ const signToken = (userId) => jwt.sign({ userId }, process.env.JWT_SECRET);
 
 // Register New User
 
-
-
 exports.register = catchAsync(async (req, res, next) => {
   const { firstName, lastName, email, password } = req.body;
 
-  const filteredBody = filterObj(
-    req.body,
-    "firstName",
-    "lastName",
-    "email",
-    "password"
-  );
+  const filteredBody = filterObj(req.body, "firstName", "lastName", "email", "password");
 
   // check if a verified user with given email exists
 
@@ -63,11 +55,15 @@ exports.register = catchAsync(async (req, res, next) => {
 
 exports.sendOTP = catchAsync(async (req, res, next) => {
   const { userId } = req;
-  const new_otp = otpGenerator.generate(6, {
-    upperCaseAlphabets: false,
-    specialChars: false,
-    lowerCaseAlphabets: false,
-  });
+  
+  // TODO => COMMENT FOR LOCALE
+
+  // const new_otp = otpGenerator.generate(6, {
+  //   upperCaseAlphabets: false,
+  //   specialChars: false,
+  //   lowerCaseAlphabets: false,
+  // });
+  const new_otp = 1234;
 
   const otp_expiry_time = Date.now() + 10 * 60 * 1000; // 10 Mins after otp is sent
 
@@ -93,6 +89,7 @@ exports.sendOTP = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     message: "OTP Sent Successfully!",
+    otpCodeIs: new_otp,
   });
 });
 
@@ -104,31 +101,33 @@ exports.verifyOTP = catchAsync(async (req, res, next) => {
     otp_expiry_time: { $gt: Date.now() },
   });
 
-  if (!user) {
-    return res.status(400).json({
-      status: "error",
-      message: "Email is invalid or OTP expired",
-    });
-  }
+  // TODO => COMMENT FOR LOCAL
 
-  if (user.verified) {
-    return res.status(400).json({
-      status: "error",
-      message: "Email is already verified",
-    });
-  }
+  // if (!user) {
+  //   return res.status(400).json({
+  //     status: "error",
+  //     message: "Email is invalid or OTP expired",
+  //   });
+  // }
 
-  if (!(await user.correctOTP(otp, user.otp))) {
-    res.status(400).json({
-      status: "error",
-      message: "OTP is incorrect",
-    });
+  // if (user.verified) {
+  //   return res.status(400).json({
+  //     status: "error",
+  //     message: "Email is already verified",
+  //   });
+  // }
 
-    return;
-  }
+  // if (!(await user.correctOTP(otp, "1234"))) {
+  //   res.status(400).json({
+  //     status: "error",
+  //     message: "OTP is incorrect",
+  //   });
+
+  //   return;
+  // }
 
   // OTP is correct
-
+  console.log("user", user);
   user.verified = true;
   user.otp = undefined;
   await user.save({ new: true, validateModifiedOnly: true });
@@ -191,10 +190,7 @@ exports.login = catchAsync(async (req, res, next) => {
 exports.protect = catchAsync(async (req, res, next) => {
   // 1) Getting token and check if it's there
   let token;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
+  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
     token = req.headers.authorization.split(" ")[1];
   } else if (req.cookies.jwt) {
     token = req.cookies.jwt;
@@ -252,7 +248,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     console.log(resetURL);
 
     mailService.sendEmail({
-      from: "shreyanshshah242@gmail.com",
+      from: "amir@gmail.com",
       to: user.email,
       subject: "Reset Password",
       html: resetPassword(user.firstName, resetURL),
@@ -262,6 +258,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     res.status(200).json({
       status: "success",
       message: "Token sent to email!",
+      resetURL,
     });
   } catch (err) {
     user.passwordResetToken = undefined;
@@ -276,10 +273,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 
 exports.resetPassword = catchAsync(async (req, res, next) => {
   // 1) Get user based on the token
-  const hashedToken = crypto
-    .createHash("sha256")
-    .update(req.body.token)
-    .digest("hex");
+  const hashedToken = crypto.createHash("sha256").update(req.body.token).digest("hex");
 
   const user = await User.findOne({
     passwordResetToken: hashedToken,

@@ -31,10 +31,9 @@ const io = new Server(server, {
   },
 });
 
-const DB = process.env.DATABASE.replace(
-  "<PASSWORD>",
-  process.env.DATABASE_PASSWORD
-);
+const DB = process.env.DATABASE.replace("<PASSWORD>", process.env.DATABASE_PASSWORD);
+
+mongoose.set("strictQuery", true);
 
 mongoose
   .connect(DB, {
@@ -154,7 +153,7 @@ io.on("connection", async (socket) => {
 
       new_chat = await OneToOneMessage.findById(new_chat).populate(
         "participants",
-        "firstName lastName _id email status"
+        "firstName lastName _id email status",
       );
 
       console.log(new_chat);
@@ -169,9 +168,7 @@ io.on("connection", async (socket) => {
 
   socket.on("get_messages", async (data, callback) => {
     try {
-      const { messages } = await OneToOneMessage.findById(
-        data.conversation_id
-      ).select("messages");
+      const { messages } = await OneToOneMessage.findById(data.conversation_id).select("messages");
       callback(messages);
     } catch (error) {
       console.log(error);
@@ -229,9 +226,7 @@ io.on("connection", async (socket) => {
     const fileExtension = path.extname(data.file.name);
 
     // Generate a unique filename
-    const filename = `${Date.now()}_${Math.floor(
-      Math.random() * 10000
-    )}${fileExtension}`;
+    const filename = `${Date.now()}_${Math.floor(Math.random() * 10000)}${fileExtension}`;
 
     // upload file to AWS s3
 
@@ -277,7 +272,7 @@ io.on("connection", async (socket) => {
       {
         participants: { $size: 2, $all: [to, from] },
       },
-      { verdict: "Missed", status: "Ended", endedAt: Date.now() }
+      { verdict: "Missed", status: "Ended", endedAt: Date.now() },
     );
 
     // TODO => emit call_missed to receiver of call
@@ -298,7 +293,7 @@ io.on("connection", async (socket) => {
       {
         participants: { $size: 2, $all: [to, from] },
       },
-      { verdict: "Accepted" }
+      { verdict: "Accepted" },
     );
 
     // TODO => emit call_accepted to sender of call
@@ -317,7 +312,7 @@ io.on("connection", async (socket) => {
       {
         participants: { $size: 2, $all: [to, from] },
       },
-      { verdict: "Denied", status: "Ended", endedAt: Date.now() }
+      { verdict: "Denied", status: "Ended", endedAt: Date.now() },
     );
 
     const from_user = await User.findById(from);
@@ -337,7 +332,7 @@ io.on("connection", async (socket) => {
       {
         participants: { $size: 2, $all: [to, from] },
       },
-      { verdict: "Busy", status: "Ended", endedAt: Date.now() }
+      { verdict: "Busy", status: "Ended", endedAt: Date.now() },
     );
 
     const from_user = await User.findById(from);
@@ -383,7 +378,7 @@ io.on("connection", async (socket) => {
       {
         participants: { $size: 2, $all: [to, from] },
       },
-      { verdict: "Missed", status: "Ended", endedAt: Date.now() }
+      { verdict: "Missed", status: "Ended", endedAt: Date.now() },
     );
 
     // TODO => emit call_missed to receiver of call
@@ -404,7 +399,7 @@ io.on("connection", async (socket) => {
       {
         participants: { $size: 2, $all: [to, from] },
       },
-      { verdict: "Accepted" }
+      { verdict: "Accepted" },
     );
 
     // TODO => emit call_accepted to sender of call
@@ -423,7 +418,7 @@ io.on("connection", async (socket) => {
       {
         participants: { $size: 2, $all: [to, from] },
       },
-      { verdict: "Denied", status: "Ended", endedAt: Date.now() }
+      { verdict: "Denied", status: "Ended", endedAt: Date.now() },
     );
 
     const from_user = await User.findById(from);
@@ -443,7 +438,7 @@ io.on("connection", async (socket) => {
       {
         participants: { $size: 2, $all: [to, from] },
       },
-      { verdict: "Busy", status: "Ended", endedAt: Date.now() }
+      { verdict: "Busy", status: "Ended", endedAt: Date.now() },
     );
 
     const from_user = await User.findById(from);
