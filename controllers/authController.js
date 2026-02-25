@@ -63,7 +63,7 @@ exports.sendOTP = catchAsync(async (req, res, next) => {
   //   specialChars: false,
   //   lowerCaseAlphabets: false,
   // });
-  const new_otp = 1234;
+  const new_otp = 123456;
 
   const otp_expiry_time = Date.now() + 10 * 60 * 1000; // 10 Mins after otp is sent
 
@@ -287,8 +287,8 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
       message: "Token is Invalid or Expired",
     });
   }
-  user.password = req.body.password;
-  user.passwordConfirm = req.body.passwordConfirm;
+  user.password = req.body.newPassword;
+  user.passwordConfirm = req.body.confirmPassword;
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
   await user.save();
