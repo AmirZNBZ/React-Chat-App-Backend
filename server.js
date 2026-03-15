@@ -182,7 +182,7 @@ io.on("connection", async (socket) => {
     // data: {to, from, text}
 
     const { message, conversation_id, from, to, type } = data;
-
+    console.log("to",to)
     const to_user = await User.findById(to);
     const from_user = await User.findById(from);
 
@@ -198,9 +198,9 @@ io.on("connection", async (socket) => {
 
     // fetch OneToOneMessage Doc & push a new message to existing conversation
     const chat = await OneToOneMessage.findById(conversation_id);
-    chat.messages.push(new_message);
+    chat?.messages.push(new_message);
     // save to db`
-    await chat.save({ new: true, validateModifiedOnly: true });
+    await chat?.save({ new: true, validateModifiedOnly: true });
 
     // emit incoming_message -> to user
 
